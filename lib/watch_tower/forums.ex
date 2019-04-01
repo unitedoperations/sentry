@@ -13,21 +13,30 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.Application do
-  @moduledoc false
+defmodule WatchTower.Forums do
+  use HTTPoison.Base
 
-  use Application
+  @expected_fields ~w(primaryGroup secondaryGroups)
 
-  def start(_type, _args) do
-    # List all child processes to be supervised
-    children = [
-      # Starts a worker by calling: WatchTower.Worker.start_link(arg)
-      # {WatchTower.Worker, arg}
+  def process_request_url(user_id) do
+    "https://unitedoperations.net/forums/api/index.php?/core/members/" <> user_id
+  end
+
+  def process_request_headers(_headers) do
+    token = 
+      Application.get_env(:uo_watchtower, :forums_api_key)
+      |> (fn key -> Base.encode64("#{key}:") end).()
+    [
+      "Authorization": "Basic #{token}",
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     ]
+  end
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: WatchTower.Supervisor]
-    Supervisor.start_link(children, opts)
+  def process_response_body(body) do
+    body
+    |> Poison.decode!
+    |> Map.take(@expected_fields)
+    |> Enum.map(fn {k, v} -> { String.to_atom(k), v } end)
   end
 end

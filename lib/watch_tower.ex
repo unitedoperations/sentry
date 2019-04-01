@@ -14,20 +14,4 @@
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule WatchTower do
-  @moduledoc """
-  Documentation for WatchTower.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> WatchTower.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end
