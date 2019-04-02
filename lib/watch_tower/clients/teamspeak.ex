@@ -13,6 +13,26 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower do
+defmodule WatchTower.Clients.Teamspeak do
   @moduledoc false
+
+  use HTTPoison.Base
+
+  def process_request_url(id) do
+    Application.get_env(:uo_watchtower, :auth_api_url) <> "/users/teamspeak/roles?id=" <> id
+  end
+
+  def process_request_headers(_headers) do
+    [
+      "X-API-Key": Application.get_env(:uo_watchtower, :auth_api_key),
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    ]
+  end
+
+  def process_response_body(body) do
+    body
+    |> Poison.decode!()
+    |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+  end
 end

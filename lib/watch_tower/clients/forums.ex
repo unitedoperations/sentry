@@ -13,30 +13,33 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.Forums do
+defmodule WatchTower.Clients.Forums do
+  @moduledoc false
+
   use HTTPoison.Base
 
-  @expected_fields ~w(primaryGroup secondaryGroups)
+  @expected_fields ~w(name primaryGroup secondaryGroups)
 
   def process_request_url(user_id) do
-    "https://unitedoperations.net/forums/api/index.php?/core/members/" <> user_id
+    Application.get_env(:uo_watchtower, :forums_api_url) <> "/core/members/" <> user_id
   end
 
   def process_request_headers(_headers) do
-    token = 
+    token =
       Application.get_env(:uo_watchtower, :forums_api_key)
       |> (fn key -> Base.encode64("#{key}:") end).()
+
     [
-      "Authorization": "Basic #{token}",
+      Authorization: "Basic #{token}",
       "Content-Type": "application/json",
-      "Accept": "application/json"
+      Accept: "application/json"
     ]
   end
 
   def process_response_body(body) do
     body
-    |> Poison.decode!
+    |> Poison.decode!()
     |> Map.take(@expected_fields)
-    |> Enum.map(fn {k, v} -> { String.to_atom(k), v } end)
+    |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
   end
 end

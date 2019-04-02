@@ -39,9 +39,7 @@ defmodule WatchTower.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:google_api_datastore, "~> 0.2.0"},
       {:poison, "~> 4.0"},
-      {:pusher, "~> 1.0"},
       {:httpoison, "~> 1.5"}
     ]
   end
