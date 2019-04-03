@@ -2,7 +2,7 @@
 
 **TODO: Add description**
 
-## Installation
+# Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 by adding `uo_sentry` to your list of dependencies in `mix.exs`:

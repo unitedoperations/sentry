@@ -1,20 +1,24 @@
-## Copyright (C) 2019  United Operations
-##
-## This program is free software: you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# Copyright (C) 2019  United Operations
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Sentry.Groups do
-  @moduledoc false
+  @moduledoc """
+  Performs computations for finding diffs between sets
+  of groups and determining which groups to revoke or
+  assign on each platform based on a known set of groups.
+  """
 
   @relevant_groups %{
     "Members" => %{
@@ -67,29 +71,44 @@ defmodule Sentry.Groups do
     }
   }
 
+  @doc """
+  Creates a tuple containing the list of groups/roles to assign
+  and revoke for Teamspeak and Discord based on the found set from
+  the user's forums account.
+  """
   def diff(forums, ts, discord) do
     [{ts, :t}, {discord, :d}]
     |> Enum.map(fn {list, key} -> analyze(forums, list, key) end)
   end
 
+  @doc """
+  Builds the individual platform's set of groups/roles to
+  assign or revoke.
+  """
   defp analyze(forums, platform, key) do
-    mapped_values =
-      Enum.reduce(@relevant_groups, [], fn {k, v}, acc ->
-        x = Map.get(v, key)
+    known = Enum.map(@relevant_groups, fn {_, v} -> Map.get(v, key) end)
 
-        if Enum.member?(forums, k) and x != nil do
-          acc ++ [x]
-        else
-          acc
-        end
-      end)
+    Enum.reduce(@relevant_groups, [], fn {k, v}, acc ->
+      x = Map.get(v, key)
 
-    {to_assign(mapped_values, platform), to_revoke(mapped_values, platform)}
+      if Enum.member?(forums, k) and x != nil do
+        acc ++ [x]
+      else
+        acc
+      end
+    end)
+    |> (fn vals -> {to_assign(vals, platform, known), to_revoke(vals, platform, known)} end).()
   end
 
-  defp to_revoke(forums, platform),
-    do: Enum.filter(platform, fn val -> !Enum.member?(forums, val) end)
+  @doc """
+  Finds the permissions to revoke for the argued platform.
+  """
+  defp to_revoke(forums, platform, all),
+    do: Enum.filter(platform, fn val -> Enum.member?(all, val) and !Enum.member?(forums, val) end)
 
-  defp to_assign(forums, platform),
-    do: Enum.filter(forums, fn val -> !Enum.member?(platform, val) end)
+  @doc """
+  Finds the permissions to assign for the argued platform.
+  """
+  defp to_assign(forums, platform, all),
+    do: Enum.filter(forums, fn val -> Enum.member?(all, val) and !Enum.member?(platform, val) end)
 end

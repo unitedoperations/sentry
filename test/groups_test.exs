@@ -13,6 +13,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-[
-  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
-]
+defmodule SentryTest.GroupsTest do
+  use ExUnit.Case
+  doctest Sentry.Groups
+
+  test "empty groups diff" do
+    assert Sentry.Groups.diff([], [], []) == [{[], []}, {[], []}]
+  end
+
+  test "correct group diff" do
+    f = ["Regulars", "Members", "Donating Members", "Officer"]
+    t = [90, 27, 86, 100]
+    d = ["Members", "Donors"]
+    assert Sentry.Groups.diff(f, t, d) == [{[], []}, {["Regulars"], []}]
+  end
+end
