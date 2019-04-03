@@ -13,10 +13,10 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.Clients.Teamspeak do
+defmodule Sentry.Clients.Teamspeak do
   use HTTPoison.Base
 
-  @endpoint Application.get_env(:uo_watchtower, :auth_api_url) <> "/users/teamspeak/roles?id="
+  @endpoint Application.get_env(:uo_sentry, :auth_api_url) <> "/users/teamspeak/roles?id="
 
   def process_url(id) do
     @endpoint <> id
@@ -24,7 +24,7 @@ defmodule WatchTower.Clients.Teamspeak do
 
   def process_request_headers(_headers) do
     [
-      "X-API-Key": Application.get_env(:uo_watchtower, :auth_api_key),
+      "X-API-Key": Application.get_env(:uo_sentry, :auth_api_key),
       "Content-Type": "application/json",
       Accept: "application/json"
     ]

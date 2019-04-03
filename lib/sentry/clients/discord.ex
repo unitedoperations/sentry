@@ -13,15 +13,26 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.Application do
-  @moduledoc false
+defmodule Sentry.Clients.Discord do
+  use HTTPoison.Base
 
-  use Application
+  @endpoint Application.get_env(:uo_sentry, :auth_api_url) <> "/users/discord/roles"
 
-  def start(_type, _args) do
-    # List all child processes to be supervised
-    children = []
-    opts = [strategy: :one_for_one, name: WatchTower.Supervisor]
-    Supervisor.start_link(children, opts)
+  def process_url(id) do
+    @endpoint <> id
+  end
+
+  def process_request_headers(_headers) do
+    [
+      "X-API-Key": Application.get_env(:uo_sentry, :auth_api_key),
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    ]
+  end
+
+  def process_response_body(body) do
+    body
+    |> Poison.decode!()
+    |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
   end
 end

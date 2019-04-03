@@ -13,18 +13,21 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.Clients.Discord do
+defmodule Sentry.Clients.Datastore do
   use HTTPoison.Base
 
-  @endpoint Application.get_env(:uo_watchtower, :auth_api_url) <> "/users/discord/roles"
+  @endpoint Application.get_env(:uo_sentry, :auth_api_url) <> "/users"
 
-  def process_url(id) do
-    @endpoint <> id
+  def process_url(param) do
+    case param do
+      "all" -> @endpoint
+      _ -> @endpoint <> "?username=" <> param
+    end
   end
 
   def process_request_headers(_headers) do
     [
-      "X-API-Key": Application.get_env(:uo_watchtower, :auth_api_key),
+      "X-API-Key": Application.get_env(:uo_sentry, :auth_api_key),
       "Content-Type": "application/json",
       Accept: "application/json"
     ]

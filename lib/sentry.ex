@@ -13,10 +13,10 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower do
+defmodule Sentry do
   @moduledoc false
 
-  alias WatchTower.Clients
+  alias Sentry.Clients
 
   def start do
     users = get_users()

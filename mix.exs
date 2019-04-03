@@ -13,14 +13,14 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.MixProject do
+defmodule Sentry.MixProject do
   use Mix.Project
 
   @version "0.1.0"
 
   def project do
     [
-      app: :uo_watchtower,
+      app: :uo_sentry,
       version: @version,
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
@@ -32,7 +32,7 @@ defmodule WatchTower.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {WatchTower.Application, []}
+      mod: {Sentry.Application, []}
     ]
   end
 

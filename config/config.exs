@@ -25,11 +25,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :uo_watchtower, key: :value
+#     config :uo_sentry, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:uo_watchtower, :key)
+#     Application.get_env(:uo_sentry, :key)
 #
 # You can also configure a third-party app:
 #

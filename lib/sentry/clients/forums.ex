@@ -13,11 +13,11 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTower.Clients.Forums do
+defmodule Sentry.Clients.Forums do
   use HTTPoison.Base
 
   @expected_fields ~w(primaryGroup secondaryGroups)
-  @endpoint Application.get_env(:uo_watchtower, :forums_api_url) <> "/core/members/"
+  @endpoint Application.get_env(:uo_sentry, :forums_api_url) <> "/core/members/"
 
   def process_url(user_id) do
     @endpoint <> user_id
@@ -25,7 +25,7 @@ defmodule WatchTower.Clients.Forums do
 
   def process_request_headers(_headers) do
     token =
-      Application.get_env(:uo_watchtower, :forums_api_key)
+      Application.get_env(:uo_sentry, :forums_api_key)
       |> (fn key -> Base.encode64("#{key}:") end).()
 
     [

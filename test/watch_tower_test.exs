@@ -13,11 +13,11 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule WatchTowerTest do
+defmodule SentryTest do
   use ExUnit.Case
-  doctest WatchTower
+  doctest Sentry
 
   test "greets the world" do
-    assert WatchTower.hello() == :world
+    assert Sentry.hello() == :world
   end
 end
