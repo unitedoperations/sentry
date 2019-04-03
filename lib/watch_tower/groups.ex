@@ -68,59 +68,23 @@ defmodule WatchTower.Groups do
   }
 
   def diff(forums, ts, discord) do
-    Enum.reduce(
-      @relevant_groups,
-      %{:d => [revoke: [], assign: []], :t => [revoke: [], assign: []]},
-      fn {k, v}, acc ->
-        if Enum.member?(forums, k) do
-          d_role = Map.get(v, :d)
-          t_group = Map.get(v, :t)
-
-          # TODO: check fallthrough
-          cond do
-            d_role != nil and !Enum.member?(discord, d_role) ->
-              acc =
-                Map.update(acc, :d, fn x -> Keyword.update!(x, :assign, &(&1 ++ [d_role])) end)
-
-            t_group != nil and !Enum.member?(ts, t_group) ->
-              acc =
-                Map.update(acc, :t, fn x -> Keyword.update!(x, :assign, &(&1 ++ [t_group])) end)
-          end
-        end
-
-        acc
-      end
-    )
+    [{ts, :t}, {discord, :d}]
+    |> Enum.map(fn {list, key} -> analyze(forums, list, key) end)
   end
 
-  defp analyze_teamspeak(forums, ts) do
-    group_ts_ids =
+  defp analyze(forums, platform, key) do
+    mapped_values =
       Enum.reduce(@relevant_groups, [], fn {k, v}, acc ->
-        id_val = Map.get(v, :t)
+        x = Map.get(v, key)
 
-        if Enum.member?(forums, k) and id_val != nil do
-          acc ++ [id_val]
+        if Enum.member?(forums, k) and x != nil do
+          acc ++ [x]
         else
           acc
         end
       end)
 
-    {to_assign(group_ts_ids, ts), to_revoke(group_ts_ids, ts)}
-  end
-
-  defp analyze_discord(forums, discord) do
-    role_names =
-      Enum.reduce(@relevant_groups, [], fn {k, v}, acc ->
-        role = Map.get(v, :d)
-
-        if Enum.member?(forums, k) and role != nil do
-          acc ++ [role]
-        else
-          acc
-        end
-      end)
-
-    {to_assign(role_names, discord), to_revoke(role_names, discord)}
+    {to_assign(mapped_values, platform), to_revoke(mapped_values, platform)}
   end
 
   defp to_revoke(forums, platform),

@@ -14,14 +14,13 @@
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule WatchTower.Clients.Forums do
-  @moduledoc false
-
   use HTTPoison.Base
 
-  @expected_fields ~w(name primaryGroup secondaryGroups)
+  @expected_fields ~w(primaryGroup secondaryGroups)
+  @endpoint Application.get_env(:uo_watchtower, :forums_api_url) <> "/core/members/"
 
-  def process_request_url(user_id) do
-    Application.get_env(:uo_watchtower, :forums_api_url) <> "/core/members/" <> user_id
+  def process_url(user_id) do
+    @endpoint <> user_id
   end
 
   def process_request_headers(_headers) do

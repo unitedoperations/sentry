@@ -14,16 +14,14 @@
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule WatchTower.Clients.Datastore do
-  @moduledoc false
-
   use HTTPoison.Base
 
-  def process_request_url(param) do
-    base = Application.get_env(:uo_watchtower, :auth_api_url) <> "/users"
+  @endpoint Application.get_env(:uo_watchtower, :auth_api_url) <> "/users"
 
+  def process_url(param) do
     case param do
-      "all" -> base
-      _ -> base <> "?username=" <> param
+      "all" -> @endpoint
+      _ -> @endpoint <> "?username=" <> param
     end
   end
 

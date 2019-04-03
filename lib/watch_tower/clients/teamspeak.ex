@@ -14,12 +14,12 @@
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule WatchTower.Clients.Teamspeak do
-  @moduledoc false
-
   use HTTPoison.Base
 
-  def process_request_url(id) do
-    Application.get_env(:uo_watchtower, :auth_api_url) <> "/users/teamspeak/roles?id=" <> id
+  @endpoint Application.get_env(:uo_watchtower, :auth_api_url) <> "/users/teamspeak/roles?id="
+
+  def process_url(id) do
+    @endpoint <> id
   end
 
   def process_request_headers(_headers) do
