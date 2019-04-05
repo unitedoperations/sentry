@@ -21,36 +21,44 @@ defmodule Sentry do
   with community APIs.
   """
 
-  alias Sentry.Clients
+  alias Sentry.Clients.Datastore
+  alias Sentry.Clients.Forums
+  alias Sentry.Clients.Teamspeak
+  alias Sentry.Clients.Discord
 
+  @doc """
+  Entry point for the Sentry daemon.
+  Gathers all existing authenticated users in the system
+  and proceeds to reprovision each's permissions.
+  """
   def start do
     users = get_users()
     IO.puts("==> Beginning persistence for #{length(users)} users <==")
 
     if length(users) > 0 do
       Enum.map(users, fn u ->
-        {
+        [
           Map.get(u, :username),
           Map.get(u, :forums_id),
           Map.get(u, :teamspeak_db_id),
           Map.get(u, :discord_id)
-        }
+        ]
       end)
-      |> Enum.map(&get_roles/1)
+      |> Enum.map(fn [username | ids] -> get_roles(username, List.to_tuple(ids)) end)
     end
 
     IO.puts("==> Completed permissions persistence task <==")
   end
 
   defp get_users do
-    Clients.Datastore.get!(:all)
+    Datastore.get!(:all)
     |> Map.get(:body)
     |> Keyword.get(:users)
   end
 
-  defp get_roles({username, forums_id, ts_db_id, discord_id}) do
+  defp get_roles(username, {forums_id, ts_id, discord_id}) do
     IO.puts("==> Gathering roles for #{username} <==")
-    forums = Clients.Forums.get!(forums_id)
-    ts = Clients.Teamspeak.get!(ts_db_id)
+    forums = Forums.get!(forums_id)
+    ts = Teamspeak.get!(ts_id)
   end
 end

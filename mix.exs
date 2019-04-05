@@ -40,7 +40,8 @@ defmodule Sentry.MixProject do
   defp deps do
     [
       {:poison, "~> 4.0"},
-      {:httpoison, "~> 1.5"}
+      {:httpoison, "~> 1.5"},
+      {:grpc, "~> 0.3.1"}
     ]
   end
 end

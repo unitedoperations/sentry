@@ -15,30 +15,41 @@
 
 defmodule Sentry.Clients.Discord do
   @moduledoc """
-  HTTPoison base wrapper for interacting with the UO 
+  GRPC client wrapper for interacting with the UO 
   Authenticator API to gather information about users
   in Discord.
   """
 
-  use HTTPoison.Base
+  @doc """
+  Call the GRPC service's `get` operation for a single user ID.
+  """
+  def get(id) when is_binary(id) do
+    case connect() do
+      {:ok, channel} ->
+        channel
+        |> RoleService.Stub.get(%{id: id})
+        |> (fn res -> {:ok, res} end).()
 
-  @endpoint Application.get_env(:uo_sentry, :auth_api_url) <> "/users/discord/roles"
-
-  def process_url(id) do
-    @endpoint <> id
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
-  def process_request_headers(_headers) do
-    [
-      "X-API-Key": Application.get_env(:uo_sentry, :auth_api_key),
-      "Content-Type": "application/json",
-      Accept: "application/json"
-    ]
+  @doc """
+  Call the GRPC service's `get` operation for a list of
+  user IDs.
+  """
+  def get(ids) when is_list(ids) do
+    case connect() do
+      {:ok, channel} ->
+        payload = Enum.map(ids, fn id -> %{id: id} end)
+        channel |> RoleService.Stub.get(payload) |> (fn res -> {:ok, res} end).()
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
-  def process_response_body(body) do
-    body
-    |> Poison.decode!()
-    |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
-  end
+  defp connect(opts \\ []),
+    do: GRPC.Stub.connect(Application.get_env(:uo_sentry, :grpc_url), opts)
 end
