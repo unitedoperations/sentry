@@ -35,6 +35,23 @@ defmodule Sentry do
     users = get_users()
     IO.puts("==> Beginning persistence for #{length(users)} users <==")
 
+    discord_users =
+      users
+      |> Enum.map(fn u -> Map.get(u, "discord_id") end)
+      |> (fn x -> Discord.get(Enum.at(x, 0)) end).()
+      |> (fn res ->
+            case res do
+              {:ok, %UserRolesList{users: user_list}} ->
+                user_list
+
+              {:error, reason} ->
+                IO.puts(reason)
+                exit(:shutdown)
+            end
+          end).()
+
+    IO.puts("==> Fetched Discord roles for all existing users <==")
+
     if length(users) > 0 do
       Enum.map(users, fn u ->
         [

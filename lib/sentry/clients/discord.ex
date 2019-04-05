@@ -27,8 +27,7 @@ defmodule Sentry.Clients.Discord do
     case connect() do
       {:ok, channel} ->
         channel
-        |> RoleService.Stub.get(%{id: id})
-        |> (fn res -> {:ok, res} end).()
+        |> RoleService.Stub.get(User.new(id: id))
 
       {:error, reason} ->
         {:error, reason}
@@ -42,8 +41,8 @@ defmodule Sentry.Clients.Discord do
   def get(ids) when is_list(ids) do
     case connect() do
       {:ok, channel} ->
-        payload = Enum.map(ids, fn id -> %{id: id} end)
-        channel |> RoleService.Stub.get(payload) |> (fn res -> {:ok, res} end).()
+        payload = Enum.map(ids, fn id -> User.new(id: id) end)
+        channel |> RoleService.Stub.get(payload)
 
       {:error, reason} ->
         {:error, reason}
