@@ -35,34 +35,25 @@ defmodule Sentry do
     users = get_users()
     IO.puts("==> Beginning persistence for #{length(users)} users <==")
 
-    discord_users =
-      users
-      |> Enum.map(fn u -> Map.get(u, "discord_id") end)
-      |> (fn x -> Discord.get(Enum.at(x, 0)) end).()
-      |> (fn res ->
-            case res do
-              {:ok, %UserRolesList{users: user_list}} ->
-                user_list
+    discord_users = users |> batch_get_discord_users
+    IO.puts("==> Gathered Discord roles for all existing users <==")
 
-              {:error, reason} ->
-                IO.puts(reason)
-                exit(:shutdown)
-            end
-          end).()
-
-    IO.puts("==> Fetched Discord roles for all existing users <==")
-
-    if length(users) > 0 do
-      Enum.map(users, fn u ->
-        [
-          Map.get(u, :username),
-          Map.get(u, :forums_id),
-          Map.get(u, :teamspeak_db_id),
-          Map.get(u, :discord_id)
-        ]
-      end)
-      |> Enum.map(fn [username | ids] -> get_roles(username, List.to_tuple(ids)) end)
-    end
+    Enum.map(users, fn u ->
+      [
+        Map.get(u, "username"),
+        Map.get(u, "forums_id"),
+        Map.get(u, "teamspeak_db_id"),
+        Map.get(u, "discord_id")
+      ]
+    end)
+    |> Enum.map(fn [username | ids] ->
+      get_roles_for_user(username, discord_users, List.to_tuple(ids))
+    end)
+    |> IO.inspect
+    |> Enum.map(fn set ->
+      Sentry.Groups.diff(Map.get(set, :forums), Map.get(set, :ts), Map.get(set, :discord))
+    end)
+    |> IO.inspect
 
     IO.puts("==> Completed permissions persistence task <==")
   end
@@ -73,9 +64,34 @@ defmodule Sentry do
     |> Keyword.get(:users)
   end
 
-  defp get_roles(username, {forums_id, ts_id, discord_id}) do
-    IO.puts("==> Gathering roles for #{username} <==")
-    forums = Forums.get!(forums_id)
-    ts = Teamspeak.get!(ts_id)
+  defp get_roles_for_user(username, discord_users, ids) do
+    IO.puts("* #{username}")
+    {forums_id, ts_id, discord_id} = ids
+
+    ts_roles = Teamspeak.get!(ts_id) |> Map.get(:body)
+    forum_roles = Forums.get!(forums_id) |> Map.get(:body)
+
+    discord_roles =
+      discord_users
+      |> Enum.find(fn user -> discord_id == Map.get(user, :id) end)
+      |> Map.get(:roles)
+
+    %{forums: forum_roles, ts: ts_roles, discord: discord_roles}
+  end
+
+  defp batch_get_discord_users(users) do
+    users
+    |> Enum.map(fn u -> Map.get(u, "discord_id") end)
+    |> (fn x -> Discord.get(Enum.at(x, 0)) end).()
+    |> (fn res ->
+          case res do
+            {:ok, %UserRolesList{users: user_list}} ->
+              user_list
+
+            {:error, reason} ->
+              IO.puts(reason)
+              exit(:shutdown)
+          end
+        end).()
   end
 end

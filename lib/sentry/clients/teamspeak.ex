@@ -40,5 +40,7 @@ defmodule Sentry.Clients.Teamspeak do
     body
     |> Poison.decode!()
     |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+    |> Keyword.get(:groups)
+    |> Enum.map(fn g -> Map.get(g, "sgid") end)
   end
 end

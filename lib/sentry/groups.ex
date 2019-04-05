@@ -21,6 +21,7 @@ defmodule Sentry.Groups do
   """
 
   @relevant_groups %{
+    # FIXME: Members is not given to all on the forums
     "Members" => %{
       :d => "Members",
       :t => 90
@@ -77,14 +78,12 @@ defmodule Sentry.Groups do
   the user's forums account.
   """
   def diff(forums, ts, discord) do
-    [{ts, :t}, {discord, :d}]
-    |> Enum.map(fn {list, key} -> analyze(forums, list, key) end)
+    %{
+      ts: analyze(forums, ts, :t),
+      discord: analyze(forums, discord, :d)
+    }
   end
 
-  @doc """
-  Builds the individual platform's set of groups/roles to
-  assign or revoke.
-  """
   defp analyze(forums, platform, key) do
     known = Enum.map(@relevant_groups, fn {_, v} -> Map.get(v, key) end)
 
@@ -97,18 +96,12 @@ defmodule Sentry.Groups do
         acc
       end
     end)
-    |> (fn vals -> {to_assign(vals, platform, known), to_revoke(vals, platform, known)} end).()
+    |> (fn vals -> %{assign: to_assign(vals, platform, known), revoke: to_revoke(vals, platform, known)} end).()
   end
 
-  @doc """
-  Finds the permissions to revoke for the argued platform.
-  """
   defp to_revoke(forums, platform, all),
     do: Enum.filter(platform, fn val -> Enum.member?(all, val) and !Enum.member?(forums, val) end)
 
-  @doc """
-  Finds the permissions to assign for the argued platform.
-  """
   defp to_assign(forums, platform, all),
     do: Enum.filter(forums, fn val -> Enum.member?(all, val) and !Enum.member?(platform, val) end)
 end

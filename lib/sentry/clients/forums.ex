@@ -46,5 +46,14 @@ defmodule Sentry.Clients.Forums do
     |> Poison.decode!()
     |> Map.take(@expected_fields)
     |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+    |> Enum.reduce([], fn {_, v}, acc ->
+      cond do
+        is_list(v) ->
+          acc ++ Enum.map(v, fn x -> Map.get(x, "name") end)
+
+        true ->
+          acc ++ [Map.get(v, "name")]
+      end
+    end)
   end
 end
