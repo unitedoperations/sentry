@@ -6,6 +6,18 @@ defmodule Empty do
   defstruct []
 end
 
+defmodule Status do
+  @moduledoc false
+  use Protobuf, syntax: :proto3
+
+  @type t :: %__MODULE__{
+          success: boolean
+        }
+  defstruct [:success]
+
+  field(:success, 1, type: :bool)
+end
+
 defmodule User do
   @moduledoc false
   use Protobuf, syntax: :proto3
@@ -56,14 +68,31 @@ defmodule AllUserRolesList do
   field(:users, 1, repeated: true, type: UserRolesList)
 end
 
-defmodule RoleService.Service do
+defmodule RoleDiff do
   @moduledoc false
-  use GRPC.Service, name: "RoleService"
+  use Protobuf, syntax: :proto3
 
-  rpc(:Get, User, UserRolesList)
+  @type t :: %__MODULE__{
+          id: String.t(),
+          assign: [String.t()],
+          revoke: [String.t()]
+        }
+  defstruct [:id, :assign, :revoke]
+
+  field(:id, 1, type: :string)
+  field(:assign, 2, repeated: true, type: :string)
+  field(:revoke, 3, repeated: true, type: :string)
 end
 
-defmodule RoleService.Stub do
+defmodule ProvisionService.Service do
   @moduledoc false
-  use GRPC.Stub, service: RoleService.Service
+  use GRPC.Service, name: "ProvisionService"
+
+  rpc(:Get, User, UserRolesList)
+  rpc(:Provision, RoleDiff, Status)
+end
+
+defmodule ProvisionService.Stub do
+  @moduledoc false
+  use GRPC.Stub, service: ProvisionService.Service
 end

@@ -60,6 +60,18 @@ defmodule Sentry do
       Sentry.Groups.diff(ids, x, y, z)
     end)
     |> IO.inspect()
+    |> Stream.each(fn %{:ts => t, :discord => d} ->
+      # Re-provision the Discord roles for the user
+      case Discord.provision(t) do
+        {:ok, %Status{success: true}} ->
+          IO.puts("\t- Discord #{Map.get(t, :id)} complete")
+        
+        {:error, reason} ->
+          IO.puts("\t- Discord #{Map.get(t, :id)} failed: #{reason}")
+      end
+
+      # Re-provision the Teamspeak server groups for the user
+    end)
 
     IO.puts("==> Completed permissions persistence task <==")
   end

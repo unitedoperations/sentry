@@ -27,7 +27,7 @@ defmodule Sentry.Clients.Discord do
     case connect() do
       {:ok, channel} ->
         channel
-        |> RoleService.Stub.get(User.new(id: id))
+        |> ProvisionService.Stub.get(User.new(id: id))
 
       {:error, reason} ->
         {:error, reason}
@@ -42,7 +42,21 @@ defmodule Sentry.Clients.Discord do
     case connect() do
       {:ok, channel} ->
         payload = Enum.map(ids, fn id -> User.new(id: id) end)
-        channel |> RoleService.Stub.get(payload)
+        channel |> ProvisionService.Stub.get(payload)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
+  Call the GRPC service's `provision` operation to set and remove
+  user roles in Discord.
+  """
+  def provision(payload) do
+    case connect() do
+      {:ok, channel} ->
+        channel |> ProvisionService.Stub.provision(payload)
 
       {:error, reason} ->
         {:error, reason}
