@@ -32,12 +32,15 @@ defmodule Sentry do
   and proceeds to reprovision each's permissions.
   """
   def start do
+    # Get all users in the authentication database
     users = get_users()
     IO.puts("==> Beginning persistence for #{length(users)} users <==")
 
+    # Map all existing users to their Discord roles list profile
     discord_users = users |> batch_get_discord_users
     IO.puts("==> Gathered Discord roles for all existing users <==")
 
+    # Create a list of user IDs for each user
     Enum.map(users, fn u ->
       [
         Map.get(u, "username"),
@@ -46,14 +49,17 @@ defmodule Sentry do
         Map.get(u, "discord_id")
       ]
     end)
-    |> Enum.map(fn [username | ids] ->
+    # Get roles/groups from Teamspeak and the forums for each user as they are streamed in
+    |> Stream.map(fn [username | ids] ->
       get_roles_for_user(username, discord_users, List.to_tuple(ids))
     end)
-    |> IO.inspect
-    |> Enum.map(fn set ->
-      Sentry.Groups.diff(Map.get(set, :forums), Map.get(set, :ts), Map.get(set, :discord))
+    # FIXME:
+    |> IO.inspect()
+    # Generate the group/role difference structure for each user's profiles
+    |> Enum.map(fn %{:ids => ids, :forums => x, :ts => y, :discord => z} ->
+      Sentry.Groups.diff(ids, x, y, z)
     end)
-    |> IO.inspect
+    |> IO.inspect()
 
     IO.puts("==> Completed permissions persistence task <==")
   end
@@ -76,7 +82,7 @@ defmodule Sentry do
       |> Enum.find(fn user -> discord_id == Map.get(user, :id) end)
       |> Map.get(:roles)
 
-    %{forums: forum_roles, ts: ts_roles, discord: discord_roles}
+    %{:ids => ids, :forums => forum_roles, :ts => ts_roles, :discord => discord_roles}
   end
 
   defp batch_get_discord_users(users) do

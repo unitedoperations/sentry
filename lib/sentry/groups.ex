@@ -77,10 +77,10 @@ defmodule Sentry.Groups do
   and revoke for Teamspeak and Discord based on the found set from
   the user's forums account.
   """
-  def diff(forums, ts, discord) do
+  def diff(ids, forums, ts, discord) do
     %{
-      ts: analyze(forums, ts, :t),
-      discord: analyze(forums, discord, :d)
+      :ts => analyze(forums, ts, :t) |> Map.put(:id, elem(ids, 1)),
+      :discord => analyze(forums, discord, :d) |> Map.put(:id, elem(ids, 2))
     }
   end
 
@@ -96,7 +96,12 @@ defmodule Sentry.Groups do
         acc
       end
     end)
-    |> (fn vals -> %{assign: to_assign(vals, platform, known), revoke: to_revoke(vals, platform, known)} end).()
+    |> (fn vals ->
+          %{
+            :assign => to_assign(vals, platform, known),
+            :revoke => to_revoke(vals, platform, known)
+          }
+        end).()
   end
 
   defp to_revoke(forums, platform, all),
